@@ -213,28 +213,7 @@ int Heater_PID_Control(int input) {
   
 }
 
-//Displays the AFR value on an external narrowband lambda gauge with an (RC-filtered) 0-1V PWM signal from ANALOG_OUTPUT_PIN. 0V = AFR 20.00. 1V = AFR 10.00.
-void UpdateAnalogOutput() {
 
-  //Local constants.
-  const float AirFuelRatioOctane = 14.70;
-  const int maximumOutput = 51; /* 1V */
-  const int minimumOutput = 0;  /* 0V */
-
-  //Local variables.
-  int analogOutput = 0;
-  float lambdaAFR = Lookup_Lambda(adcValue_UA) * AirFuelRatioOctane;
-
-  //Convert lambda value to PWM output.
-  analogOutput = map(lambdaAFR * 100, 2000, 1000, minimumOutput, maximumOutput);
-
-  //Make sure we do not exceed maximum values.
-  if (analogOutput > maximumOutput) analogOutput = maximumOutput;
-  if (analogOutput < minimumOutput) analogOutput = minimumOutput;
-  
-  //Set PWM output.
-  analogWrite(ANALOG_OUTPUT_PIN, analogOutput);
-}
 
 //Lookup Lambda Value.
 float Lookup_Lambda(int Input_ADC) {
@@ -390,10 +369,6 @@ void start() {
   //Store optimal values before leaving calibration mode.
   adcValue_UA_Optimal = analogRead(UA_ANALOG_INPUT_PIN);
   adcValue_UR_Optimal = analogRead(UR_ANALOG_INPUT_PIN);
-  
-  //Update analog output, display the optimal value.
-  adcValue_UA = adcValue_UA_Optimal;
-  UpdateAnalogOutput();
     
   //Set CJ125 in normal operation mode.
   //COM_SPI(CJ125_INIT_REG1_MODE_NORMAL_V8);  /* V=0 */
@@ -527,9 +502,6 @@ void loop() {
       
     //Calculate Oxygen Content.
     float OXYGEN_CONTENT = Lookup_Oxygen(adcValue_UA);
-
-    //Update analog output.
-    UpdateAnalogOutput();
 
     //Display information if no errors is reported.
     if (CJ125_Status == CJ125_DIAG_REG_STATUS_OK) {
